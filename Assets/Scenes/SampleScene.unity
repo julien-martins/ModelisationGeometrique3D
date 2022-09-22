@@ -168,7 +168,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   mat: {fileID: 2100000, guid: 74d1d46929067e74fabed292010780ce, type: 2}
-  nbOfTriangles: 10
+  sizeRectangleX: 3
+  sizeRectangleY: 3
 --- !u!1 &705507993
 GameObject:
   m_ObjectHideFlags: 0
