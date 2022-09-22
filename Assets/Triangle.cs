@@ -13,46 +13,65 @@ public class Triangle : MonoBehaviour
     // Use this for initialization
     void Start()
     {
-        gameObject.AddComponent<MeshFilter>();          // Creation d'un composant MeshFilter qui peut ensuite être visualisé
+        // Creation d'un composant MeshFilter qui peut ensuite être visualisé
+        gameObject.AddComponent<MeshFilter>();
         gameObject.AddComponent<MeshRenderer>();
 
-        int sizeOfVertices = (sizeRectangleX + 1) * (sizeRectangleY + 1) - 1;
-        Vector3[] vertices = new Vector3[sizeOfVertices];           // Création des structures de données qui accueilleront sommets et  triangles
+        Mesh msh = createPlane();
+
+        // Remplissage du Mesh et ajout du matériel
+        gameObject.GetComponent<MeshFilter>().mesh = msh;
+        gameObject.GetComponent<MeshRenderer>().material = mat;
+    }
+
+    Mesh createPlane()
+    {
+        Mesh msh = new Mesh();
+
+        int sizeOfVertices = (sizeRectangleX + 1) * (sizeRectangleY + 1);
+
+        // Création des structures de données qui accueilleront sommets et  triangles
+        Vector3[] vertices = new Vector3[sizeOfVertices];
         int[] triangles = new int[sizeRectangleX * sizeRectangleY * 6];
-        
-        for(int i = 0; i < sizeOfVertices; ++i)
+
+        //Creer touts les vertices du plan
+        for (int i = 0; i < sizeOfVertices; ++i)
         {
             int x = i % (sizeRectangleX + 1);
             int y = i / (sizeRectangleX + 1);
 
             vertices[i] = new Vector3(x, y, 0);
-            Debug.Log(vertices[i]);
         }
 
-
-        for(int j = 0; j < sizeRectangleX * sizeRectangleY * 6; j += 6)
+        //Creer tout les triangles du plan en associant les vertices
+        for (int j = 0; j < sizeRectangleX * sizeRectangleY * 6; j += 6)
         {
-            triangles[j] = (int)(j/3);
-            triangles[j + 1] = (int)(j / 3) + 1;
-            triangles[j + 2] = sizeRectangleX + 1 + (int)(j / 3);
+            int offsetY = (int)(j / 6) / sizeRectangleX;
 
-            triangles[j + 3] = (int)(j / 3) + 1;
-            triangles[j + 4] = sizeRectangleX + 2 + (int)(j / 3);
-            triangles[j + 5] = sizeRectangleX + 1 + (int)(j / 3);
+            triangles[j] = (int)(j / 6) + offsetY;
+            triangles[j + 1] = (int)(j / 6) + 1 + offsetY;
+            triangles[j + 2] = sizeRectangleX + 1 + (int)(j / 6) + offsetY;
 
-            //Debug.Log(triangles[j]);
-            //Debug.Log(triangles[j + 1]);
-            //Debug.Log(triangles[j + 2]);
-
+            triangles[j + 3] = (int)(j / 6) + 1 + offsetY;
+            triangles[j + 4] = sizeRectangleX + 2 + (int)(j / 6) + offsetY;
+            triangles[j + 5] = sizeRectangleX + 1 + (int)(j / 6) + offsetY;
         }
 
+        //Creer le mesh
+        msh.vertices = vertices;
+        msh.triangles = triangles;
 
-        /*
-        //Cube
+        return msh;
+    }
+    Mesh createCube()
+    {
+        Mesh msh = new Mesh();
+
+
         Vector3[] vertices = new Vector3[8];
-        int[] triangles = new int[8*6];
+        int[] triangles = new int[8 * 6];
 
-        //face avant
+        //Creation de tout les vertices du cubes
         vertices[0] = new Vector3(0, 0, 0);
         vertices[1] = new Vector3(1, 0, 0);
         vertices[2] = new Vector3(1, 1, 0);
@@ -115,17 +134,11 @@ public class Triangle : MonoBehaviour
         triangles[33] = 6;
         triangles[34] = 4;
         triangles[35] = 7;
-        */
-
-        Mesh msh = new Mesh();                          // Création et remplissage du Mesh
 
         msh.vertices = vertices;
         msh.triangles = triangles;
 
-        gameObject.GetComponent<MeshFilter>().mesh = msh;           // Remplissage du Mesh et ajout du matériel
-        gameObject.GetComponent<MeshRenderer>().material = mat;
+        return msh;
     }
-}
-/*
 
-*/
+}
