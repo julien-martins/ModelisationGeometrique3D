@@ -16,29 +16,34 @@ public class Triangle : MonoBehaviour
         gameObject.AddComponent<MeshFilter>();          // Creation d'un composant MeshFilter qui peut ensuite être visualisé
         gameObject.AddComponent<MeshRenderer>();
 
-        Vector3[] vertices = new Vector3[sizeRectangleX * sizeRectangleY];            // Création des structures de données qui accueilleront sommets et  triangles
+        int sizeOfVertices = (sizeRectangleX + 1) * (sizeRectangleY + 1) - 1;
+        Vector3[] vertices = new Vector3[sizeOfVertices];           // Création des structures de données qui accueilleront sommets et  triangles
         int[] triangles = new int[sizeRectangleX * sizeRectangleY * 6];
-
-        for(int i = 0; i < sizeRectangleX; ++i)
+        
+        for(int i = 0; i < sizeOfVertices; ++i)
         {
-            for (int j = 0; j < sizeRectangleY; ++j)
-            {
-                vertices[i * sizeRectangleX + j] = new Vector3(i, j, 0);
-            }
+            int x = i % (sizeRectangleX + 1);
+            int y = i / (sizeRectangleX + 1);
+
+            vertices[i] = new Vector3(x, y, 0);
+            Debug.Log(vertices[i]);
         }
 
-        for (int i = 0; i < sizeRectangleX - 1; ++i)
-        {
-            for (int j = 0; j < sizeRectangleY - 1; ++j)
-            {
-                triangles[i * sizeRectangleY + j] = i * sizeRectangleY + (j + 1);
-                triangles[i * sizeRectangleY + j + 1] = (i + 1) * sizeRectangleY + j;
-                triangles[i * sizeRectangleY + j + 2] = i * sizeRectangleY + j;
 
-                triangles[i * sizeRectangleY + j + 3] = i * sizeRectangleY + (j + 1);
-                triangles[i * sizeRectangleY + j + 4] = (i + 1) * sizeRectangleY + (j + 1);
-                triangles[i * sizeRectangleY + j + 5] = (i + 1) * sizeRectangleY + j;
-            }
+        for(int j = 0; j < sizeRectangleX * sizeRectangleY * 6; j += 6)
+        {
+            triangles[j] = (int)(j/3);
+            triangles[j + 1] = (int)(j / 3) + 1;
+            triangles[j + 2] = sizeRectangleX + 1 + (int)(j / 3);
+
+            triangles[j + 3] = (int)(j / 3) + 1;
+            triangles[j + 4] = sizeRectangleX + 2 + (int)(j / 3);
+            triangles[j + 5] = sizeRectangleX + 1 + (int)(j / 3);
+
+            //Debug.Log(triangles[j]);
+            //Debug.Log(triangles[j + 1]);
+            //Debug.Log(triangles[j + 2]);
+
         }
 
 
