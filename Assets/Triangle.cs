@@ -1,14 +1,34 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using UnityEngine;
 
+public enum EFormType
+{
+    Plane,
+    Cube,
+    Cylindre,
+    Sphere
+}
+
 public class Triangle : MonoBehaviour
 {
+    public EFormType FormType;
+    
     public Material mat;
 
+    [Header("Rectangle")]
     public int sizeRectangleX;
     public int sizeRectangleY;
+
+    [Header("Cylindre")]
+    public int CylindreRayon;
+    public int Hauteur;
+    public int NbMeridien;
+
+    [Header("Sphere")]
+    public int SphereRayon;
 
     // Use this for initialization
     void Start()
@@ -17,11 +37,127 @@ public class Triangle : MonoBehaviour
         gameObject.AddComponent<MeshFilter>();
         gameObject.AddComponent<MeshRenderer>();
 
-        Mesh msh = createPlane();
+        Mesh msh = null;
+        switch (FormType) {
+            case EFormType.Plane:
+                msh = createPlane();
+                break;
+            case EFormType.Cube:
+                msh = createCube();
+                break;
+            case EFormType.Cylindre:
+                msh = createCylindre();
+                break;
+            case EFormType.Sphere:
+                msh = createSphere();
+                break;
+        }
 
         // Remplissage du Mesh et ajout du matériel
         gameObject.GetComponent<MeshFilter>().mesh = msh;
         gameObject.GetComponent<MeshRenderer>().material = mat;
+    }
+
+    Mesh createSphere()
+    {
+
+        return null;
+    }
+
+    Mesh createCylindre()
+    {
+        Mesh msh = new Mesh();
+
+        int nbVertices = 8;
+
+        Vector3[] vertices = new Vector3[nbVertices*2 + 2];
+        int[] triangles = new int[nbVertices * 6 + nbVertices * 2 * 3];
+
+        for(int i = 0; i < nbVertices; ++i)
+        {
+            double angle = 2 * Math.PI * i / nbVertices;
+            vertices[i] = new Vector3((float)(CylindreRayon * Math.Cos(angle)), 
+                                        (float)(CylindreRayon * Math.Sin(angle)), 0.0f);
+        }
+
+        for(int i = nbVertices; i < 2*nbVertices; ++i)
+        {
+            double angle = 2 * Math.PI * i / nbVertices;
+            vertices[i] = new Vector3((float)(CylindreRayon * Math.Cos(angle)), (float)(CylindreRayon * Math.Sin(angle)), (float)Hauteur);
+        }
+
+        vertices[nbVertices * 2] = new Vector3(0, 0, 0);
+        vertices[nbVertices * 2 + 1] = new Vector3(0, 0, Hauteur);
+
+        //Face du cylindre
+        for (int i = 0; i < nbVertices * 6; i += 6)
+        {
+            int index = (int)(i / 6);
+
+            if (index == nbVertices - 1)
+            {
+                triangles[i] = index;
+                triangles[i + 1] = nbVertices;
+                triangles[i + 2] = index + nbVertices;
+
+                triangles[i + 3] = index;
+                triangles[i + 4] = 0;
+                triangles[i + 5] = nbVertices;
+            }
+            else
+            {
+                triangles[i] = index;
+                triangles[i + 1] = index + nbVertices + 1;
+                triangles[i + 2] = index + nbVertices;
+
+                triangles[i + 3] = index;
+                triangles[i + 4] = index + 1;
+                triangles[i + 5] = index + nbVertices + 1;
+            }
+            
+        }
+
+        //Chapeaux
+        for (int i = nbVertices * 6; i < nbVertices * 6 + nbVertices * 3; i += 3)
+        {
+            int index = i/3 - nbVertices * 2;
+            //Debug.Log(index);
+
+            //Haut
+            if (index == nbVertices-1)
+            {
+                triangles[i] = index;
+                triangles[i + 1] = nbVertices*2;
+                triangles[i + 2] = 0;
+            }
+            else
+            {
+                triangles[i] = index;
+                triangles[i + 1] = nbVertices * 2;
+                triangles[i + 2] = index + 1;
+            }
+
+            //Bas
+            index += nbVertices;
+            //Debug.Log(index);
+            if (index == 2 * nbVertices - 1)
+            {
+                triangles[i + nbVertices * 3] = nbVertices;
+                triangles[i + nbVertices * 3 + 1] = nbVertices * 2 + 1;
+                triangles[i + nbVertices * 3 + 2] = index;
+            }
+            else
+            {
+                triangles[i + nbVertices*3] = index + 1;
+                triangles[i + nbVertices*3 + 1] = nbVertices * 2 + 1;
+                triangles[i + nbVertices*3 + 2] = index;
+            }
+        }
+
+        msh.vertices = vertices;
+        msh.triangles = triangles;
+
+        return msh;
     }
 
     Mesh createPlane()
@@ -63,6 +199,7 @@ public class Triangle : MonoBehaviour
 
         return msh;
     }
+    
     Mesh createCube()
     {
         Mesh msh = new Mesh();
