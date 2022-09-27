@@ -167,7 +167,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b509b48815b55cc44893858633879b3a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  FormType: 2
+  FormType: 3
   mat: {fileID: 15303, guid: 0000000000000000f000000000000000, type: 0}
   sizeRectangleX: 4
   sizeRectangleY: 3

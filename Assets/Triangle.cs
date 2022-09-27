@@ -58,10 +58,55 @@ public class Triangle : MonoBehaviour
         gameObject.GetComponent<MeshRenderer>().material = mat;
     }
 
+    void OnDrawGizmos()
+    {
+        Mesh mesh = createSphere();
+        
+        foreach (Vector3 coord in mesh.vertices)
+        {
+            Gizmos.color = Color.red;
+            Gizmos.DrawSphere(coord, 0.1f);
+        }
+    }
+
     Mesh createSphere()
     {
+        Mesh msh = new Mesh();
 
-        return null;
+        int nbParraleles = 8;
+        int nbMeridiens = 8;
+        int rayon = 1;
+
+        Vector3[] vertices = new Vector3[nbParraleles * nbMeridiens];
+        int[] triangles = new int[nbParraleles * nbMeridiens * 6];
+        
+        
+        for (int j = 1; j < nbParraleles; ++j)
+        {
+            for (int i = 0; i < nbMeridiens; ++i)
+            {
+                double phi = Math.PI * j / nbParraleles;
+                double theta = 2 * Math.PI * i / nbMeridiens;
+
+                vertices[i * nbMeridiens + j] = new Vector3(
+                    (float)(rayon * Math.Cos(theta) * Math.Sin(phi)), 
+                    (float)(rayon * Math.Sin(theta) * Math.Sin(phi)), 
+                    (float)(rayon * Math.Cos(phi))
+                );
+
+            }
+        }
+
+
+        //vertices[nbMeridiens * nbParraleles-1] = new Vector3(0, 0, rayon);
+        //vertices[0] = new Vector3(0, 0, -rayon);
+        vertices[0] = new Vector3(1, 1, 1);
+        vertices[nbMeridiens * nbParraleles - 1] = new Vector3(1, 1, 1);
+
+        msh.vertices = vertices;
+        msh.triangles = triangles;
+
+        return msh;
     }
 
     Mesh createCylindre()
