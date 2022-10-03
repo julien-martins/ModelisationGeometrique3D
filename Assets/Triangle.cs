@@ -2,7 +2,9 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.Linq;
 using UnityEngine;
+using UnityEngine.AI;
 
 public enum EFormType
 {
@@ -18,6 +20,8 @@ public class Triangle : MonoBehaviour
     
     public Material mat;
 
+    [Header("Debugger")] public bool DrawVertices = false;
+
     [Header("Rectangle")]
     public int sizeRectangleX;
     public int sizeRectangleY;
@@ -29,6 +33,9 @@ public class Triangle : MonoBehaviour
 
     [Header("Sphere")]
     public int SphereRayon;
+
+    public int SphereMeridien;
+    public int SphereParraleles;
 
     // Use this for initialization
     void Start()
@@ -60,8 +67,10 @@ public class Triangle : MonoBehaviour
 
     void OnDrawGizmos()
     {
+        if (!DrawVertices) return;
+
         Mesh mesh = createSphere();
-        
+
         foreach (Vector3 coord in mesh.vertices)
         {
             Gizmos.color = Color.red;
@@ -73,37 +82,101 @@ public class Triangle : MonoBehaviour
     {
         Mesh msh = new Mesh();
 
-        int nbParraleles = 8;
-        int nbMeridiens = 8;
-        int rayon = 1;
+        int nbParraleles = SphereParraleles;
+        int nbMeridiens = SphereMeridien;
+        int rayon = SphereRayon;
 
-        Vector3[] vertices = new Vector3[nbParraleles * nbMeridiens];
-        int[] triangles = new int[nbParraleles * nbMeridiens * 6];
+        Vector3[] vertices = new Vector3[(nbParraleles-1) * nbMeridiens + 2];
+        int[] triangles = new int[((nbParraleles - 1) * nbMeridiens + nbMeridiens) * 6];
         
-        
-        for (int j = 1; j < nbParraleles; ++j)
+        for (int i = 0; i < nbMeridiens; ++i)
         {
-            for (int i = 0; i < nbMeridiens; ++i)
+            for (int j = 1; j < nbParraleles; ++j)
             {
                 double phi = Math.PI * j / nbParraleles;
                 double theta = 2 * Math.PI * i / nbMeridiens;
-
-                vertices[i * nbMeridiens + j] = new Vector3(
+                
+                vertices[i * (nbMeridiens-1) + (j-1)] = new Vector3(
                     (float)(rayon * Math.Cos(theta) * Math.Sin(phi)), 
                     (float)(rayon * Math.Sin(theta) * Math.Sin(phi)), 
                     (float)(rayon * Math.Cos(phi))
                 );
+            }
+        }
+        
+        vertices[(nbParraleles - 1) * nbMeridiens] = new Vector3(0, 0, -rayon);
+        vertices[(nbParraleles - 1) * nbMeridiens + 1] = new Vector3(0, 0, rayon);
 
+
+        for (int i = 0; i < (nbParraleles - 1) * nbMeridiens * 6; i += 6)
+        {
+            int index = i / 6;
+            if ((index+1) % (nbParraleles-1) == 0) continue;
+            if (index < (nbParraleles - 1) * nbMeridiens - (nbMeridiens - 1))
+            {
+                triangles[i] = index;
+                triangles[i + 1] = index + 1;
+                triangles[i + 2] = index + (nbMeridiens-1);
+
+                triangles[i + 3] = index + 1;
+                triangles[i + 4] = index + nbMeridiens;
+                triangles[i + 5] = index + (nbMeridiens-1);
+            }
+            else
+            {
+                triangles[i] = index;
+                triangles[i + 1] = index + 1;
+                triangles[i + 2] = (index + (nbMeridiens - 1)) % nbMeridiens;
+
+                triangles[i + 3] = index + 1;
+                triangles[i + 4] = (index + nbMeridiens) % nbMeridiens;
+                triangles[i + 5] = (index + (nbMeridiens - 1)) % nbMeridiens;
+            }
+        }
+
+        //Chapeaux Haut
+        int offset = (nbParraleles - 1) * nbMeridiens * 6;
+        int cpt = 0;
+        for (int i = 0; i < (nbParraleles - 1) * nbMeridiens; i++)
+        {
+            if (i % (nbMeridiens - 1) == 0)
+            {
+                if (i < (nbParraleles - 1) * nbMeridiens - (nbMeridiens - 1))
+                {
+                    triangles[offset + cpt] = i;
+                    triangles[offset + cpt + 1] = i + nbMeridiens - 1;
+                    triangles[offset + cpt + 2] = (nbParraleles - 1) * nbMeridiens + 1;
+                }
+                else
+                {
+                    triangles[offset + cpt] = i;
+                    triangles[offset + cpt + 1] = 0;
+                    triangles[offset + cpt + 2] = (nbParraleles - 1) * nbMeridiens + 1;
+                }
+
+                cpt+=3;
+            }
+            else if (i%(nbMeridiens - 1) == nbMeridiens-2)
+            {
+                if (i < (nbParraleles - 1) * nbMeridiens - 1)
+                {
+                    triangles[offset + cpt] = i+nbMeridiens-1;
+                    triangles[offset + cpt + 1] = i;
+                    triangles[offset + cpt + 2] = (nbParraleles - 1) * nbMeridiens;
+                }
+                else
+                {
+                    triangles[offset + cpt] = nbMeridiens-2;
+                    triangles[offset + cpt + 1] = i;
+                    triangles[offset + cpt + 2] = (nbParraleles - 1) * nbMeridiens;
+                }
+
+                cpt += 3;
             }
         }
 
 
-        //vertices[nbMeridiens * nbParraleles-1] = new Vector3(0, 0, rayon);
-        //vertices[0] = new Vector3(0, 0, -rayon);
-        vertices[0] = new Vector3(1, 1, 1);
-        vertices[nbMeridiens * nbParraleles - 1] = new Vector3(1, 1, 1);
-
-        msh.vertices = vertices;
+        msh.vertices = vertices.ToArray();
         msh.triangles = triangles;
 
         return msh;

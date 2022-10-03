@@ -169,12 +169,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   FormType: 3
   mat: {fileID: 15303, guid: 0000000000000000f000000000000000, type: 0}
+  DrawVertices: 0
   sizeRectangleX: 4
   sizeRectangleY: 3
   CylindreRayon: 2
   Hauteur: 5
   NbMeridien: 2
-  SphereRayon: 0
+  SphereRayon: 2
+  SphereMeridien: 16
+  SphereParraleles: 16
 --- !u!1 &705507993
 GameObject:
   m_ObjectHideFlags: 0
