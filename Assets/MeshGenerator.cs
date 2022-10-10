@@ -1,7 +1,9 @@
+using Palmmedia.ReportGenerator.Core.Parser.Analysis;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.IO;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.AI;
@@ -11,16 +13,20 @@ public enum EFormType
     Plane,
     Cube,
     Cylindre,
-    Sphere
+    Sphere,
+    VoxelSphere,
+    Custom
 }
 
-public class Triangle : MonoBehaviour
+public class MeshGenerator : MonoBehaviour
 {
     public EFormType FormType;
     
     public Material mat;
 
-    [Header("Debugger")] public bool DrawVertices = false;
+    [Header("Debugger")] 
+    public bool DrawVertices = false;
+    public float SphereRadius = 0.01f;
 
     [Header("Rectangle")]
     public int sizeRectangleX;
@@ -32,35 +38,25 @@ public class Triangle : MonoBehaviour
     public int NbMeridien;
 
     [Header("Sphere")]
+    public Vector3 center;
     public int SphereRayon;
 
     public int SphereMeridien;
     public int SphereParraleles;
 
+    [Header("Custom")]
+    public string fileName;
+
     // Use this for initialization
     void Start()
     {
-        // Creation d'un composant MeshFilter qui peut ensuite être visualisé
+        // Creation d'un composant MeshFilter qui peut ensuite ï¿½tre visualisï¿½
         gameObject.AddComponent<MeshFilter>();
         gameObject.AddComponent<MeshRenderer>();
 
-        Mesh msh = null;
-        switch (FormType) {
-            case EFormType.Plane:
-                msh = createPlane();
-                break;
-            case EFormType.Cube:
-                msh = createCube();
-                break;
-            case EFormType.Cylindre:
-                msh = createCylindre();
-                break;
-            case EFormType.Sphere:
-                msh = createSphere();
-                break;
-        }
+        Mesh msh = GetMesh();
 
-        // Remplissage du Mesh et ajout du matériel
+        // Remplissage du Mesh et ajout du matï¿½riel
         gameObject.GetComponent<MeshFilter>().mesh = msh;
         gameObject.GetComponent<MeshRenderer>().material = mat;
     }
@@ -69,16 +65,156 @@ public class Triangle : MonoBehaviour
     {
         if (!DrawVertices) return;
 
-        Mesh mesh = createSphere();
+        Mesh mesh = GetMesh();
 
         foreach (Vector3 coord in mesh.vertices)
         {
             Gizmos.color = Color.red;
-            Gizmos.DrawSphere(coord, 0.1f);
+            Gizmos.DrawSphere(coord, SphereRadius);
         }
     }
 
-    Mesh createSphere()
+    public Mesh GetMesh()
+    {
+        Mesh msh = null;
+        switch (FormType)
+        {
+            case EFormType.Plane:
+                msh = CreatePlane();
+                break;
+            case EFormType.Cube:
+                msh = CreateCube(Vector3.zero);
+                break;
+            case EFormType.Cylindre:
+                msh = CreateCylindre();
+                break;
+            case EFormType.Sphere:
+                msh = CreateSphere();
+                break;
+            case EFormType.Custom:
+                msh = LoadMeshOFF(fileName);
+                break;
+        }
+
+        return msh;
+    }
+
+    Mesh LoadMeshOFF(string fileName)
+    {
+        String[] lines = readFiles(fileName + ".off");
+        if (lines[0] != "OFF") return null;
+
+        Mesh mesh = new();
+        int sizeVertices = int.Parse(lines[1].Split(" ")[0]);
+        int sizeTriangles = int.Parse(lines[1].Split(" ")[1]);
+
+        Vector3[] vertices = new Vector3[sizeVertices];
+        int[] triangles = new int[sizeTriangles * 3];
+
+        int headerOffset = 2;
+
+        //Vertices
+        for(int i = headerOffset; i < sizeVertices + headerOffset; ++i)
+        {
+            String[] coordStr = lines[i].Replace(".", ",").Split(" ");
+            double x = double.Parse(coordStr[0]);
+            double y = double.Parse(coordStr[1]);
+            double z = double.Parse(coordStr[2]);
+
+            vertices[i- headerOffset] = new Vector3((float)x, (float)y, (float)z);
+        }
+
+        //Triangles
+        for(int i = sizeVertices + headerOffset; i < sizeVertices + sizeTriangles - headerOffset; ++i)
+        {
+            String[] coordStr = lines[i].Split(" ");
+            int s1 = int.Parse(coordStr[1]);
+            int s2 = int.Parse(coordStr[2]);
+            int s3 = int.Parse(coordStr[3]);
+
+            int index = (i - sizeVertices - headerOffset) * 3;
+
+            triangles[index] = s1;
+            triangles[index + 1] = s2;
+            triangles[index + 2] = s3;
+        }
+
+        //NormalizeModel(vertices);
+
+        ReplaceModel(vertices);
+
+        mesh.vertices = vertices;
+        mesh.triangles = triangles;
+
+        return mesh;
+    }
+
+    void SaveMeshOFF()
+    {
+        
+
+    }
+
+    Vector3 MaxCoord(Vector3[] vertices)
+    {
+        Vector3 max = vertices[0];
+        for(int i = 1; i < vertices.Length; ++i)
+        {
+            Vector3 coord = new(Math.Abs(vertices[i].x), Math.Abs(vertices[i].y), Math.Abs(vertices[i].z));
+            if (coord.x > max.x && coord.y > max.y && coord.z > max.z)
+                max = coord;
+        }
+
+        return max;
+    }
+
+    Vector3 VerticesCenter(Vector3[] vertices)
+    {
+        Vector3 center = new();
+
+        for(int i = 0; i < vertices.Length; ++i)
+        {
+            center += vertices[i];
+        }
+
+        return center/vertices.Length;
+    }
+
+    void ReplaceModel(Vector3[] vertices)
+    {
+        Vector3 center = VerticesCenter(vertices);
+
+        for (int i = 0; i < vertices.Length; ++i)
+        {
+            vertices[i] -= center;
+        }
+    }
+
+    void NormalizeModel(Vector3[] vertices)
+    {
+        Vector3 max = MaxCoord(vertices);
+
+        for(int i = 0; i < vertices.Length; ++i)
+        {
+            vertices[i] = new Vector3(
+                vertices[i].x / max.x,
+                vertices[i].y / max.y,
+                vertices[i].z / max.z
+                );
+        }
+    }
+
+    public String[] readFiles(String fileName)
+    {
+        var sr = new StreamReader(Application.dataPath + "/" + fileName);
+        Debug.Log(Application.dataPath + "/" + fileName);
+        var fileContents = sr.ReadToEnd();
+        sr.Close();
+
+        return fileContents.Split("\n"[0]);
+    }
+
+    Mesh CreateSphere()
     {
         Mesh msh = new Mesh();
 
@@ -103,7 +239,7 @@ public class Triangle : MonoBehaviour
                 );
             }
         }
-        
+
         vertices[(nbParraleles - 1) * nbMeridiens] = new Vector3(0, 0, -rayon);
         vertices[(nbParraleles - 1) * nbMeridiens + 1] = new Vector3(0, 0, rayon);
 
@@ -182,7 +318,7 @@ public class Triangle : MonoBehaviour
         return msh;
     }
 
-    Mesh createCylindre()
+    Mesh CreateCylindre()
     {
         Mesh msh = new Mesh();
 
@@ -278,13 +414,13 @@ public class Triangle : MonoBehaviour
         return msh;
     }
 
-    Mesh createPlane()
+    Mesh CreatePlane()
     {
         Mesh msh = new Mesh();
 
         int sizeOfVertices = (sizeRectangleX + 1) * (sizeRectangleY + 1);
 
-        // Création des structures de données qui accueilleront sommets et  triangles
+        // Crï¿½ation des structures de donnï¿½es qui accueilleront sommets et  triangles
         Vector3[] vertices = new Vector3[sizeOfVertices];
         int[] triangles = new int[sizeRectangleX * sizeRectangleY * 6];
 
@@ -318,7 +454,7 @@ public class Triangle : MonoBehaviour
         return msh;
     }
     
-    Mesh createCube()
+    Mesh CreateCube(Vector3 pos)
     {
         Mesh msh = new Mesh();
 
@@ -327,14 +463,14 @@ public class Triangle : MonoBehaviour
         int[] triangles = new int[8 * 6];
 
         //Creation de tout les vertices du cubes
-        vertices[0] = new Vector3(0, 0, 0);
-        vertices[1] = new Vector3(1, 0, 0);
-        vertices[2] = new Vector3(1, 1, 0);
-        vertices[3] = new Vector3(0, 1, 0);
-        vertices[4] = new Vector3(0, 0, -1);
-        vertices[5] = new Vector3(1, 0, -1);
-        vertices[6] = new Vector3(1, 1, -1);
-        vertices[7] = new Vector3(0, 1, -1);
+        vertices[0] = new Vector3(0 + pos.x, 0 + pos.y, 0 + pos.z);
+        vertices[1] = new Vector3(1 + pos.x, 0 + pos.y, 0 + pos.z);
+        vertices[2] = new Vector3(1 + pos.x, 1 + pos.y, 0 + pos.z);
+        vertices[3] = new Vector3(0 + pos.x, 1 + pos.y, 0 + pos.z);
+        vertices[4] = new Vector3(0 + pos.x, 0 + pos.y, -1 + pos.z);
+        vertices[5] = new Vector3(1 + pos.x, 0 + pos.y, -1 + pos.z);
+        vertices[6] = new Vector3(1 + pos.x, 1 + pos.y, -1 + pos.z);
+        vertices[7] = new Vector3(0 + pos.x, 1 + pos.y, -1 + pos.z);
 
         //Face avant
         triangles[0] = 0;
