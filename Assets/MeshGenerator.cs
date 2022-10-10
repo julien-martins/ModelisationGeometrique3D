@@ -454,23 +454,22 @@ public class MeshGenerator : MonoBehaviour
         return msh;
     }
     
-    Mesh CreateCube(Vector3 pos)
+    public Mesh CreateCube(Vector3 pos, int size = 1)
     {
         Mesh msh = new Mesh();
-
 
         Vector3[] vertices = new Vector3[8];
         int[] triangles = new int[8 * 6];
 
         //Creation de tout les vertices du cubes
-        vertices[0] = new Vector3(0 + pos.x, 0 + pos.y, 0 + pos.z);
-        vertices[1] = new Vector3(1 + pos.x, 0 + pos.y, 0 + pos.z);
-        vertices[2] = new Vector3(1 + pos.x, 1 + pos.y, 0 + pos.z);
-        vertices[3] = new Vector3(0 + pos.x, 1 + pos.y, 0 + pos.z);
-        vertices[4] = new Vector3(0 + pos.x, 0 + pos.y, -1 + pos.z);
-        vertices[5] = new Vector3(1 + pos.x, 0 + pos.y, -1 + pos.z);
-        vertices[6] = new Vector3(1 + pos.x, 1 + pos.y, -1 + pos.z);
-        vertices[7] = new Vector3(0 + pos.x, 1 + pos.y, -1 + pos.z);
+        vertices[0] = new Vector3(0 + pos.x,            0 + pos.y,          0 + pos.z);
+        vertices[1] = new Vector3(1 * size + pos.x,     0 + pos.y,          0 + pos.z);
+        vertices[2] = new Vector3(1 * size + pos.x,     1 * size + pos.y,   0 + pos.z);
+        vertices[3] = new Vector3(0 + pos.x,            1 * size + pos.y,   0 + pos.z);
+        vertices[4] = new Vector3(0 + pos.x,            0 + pos.y,          -1 * size + pos.z);
+        vertices[5] = new Vector3(1 * size + pos.x,     0 + pos.y,          -1 * size + pos.z);
+        vertices[6] = new Vector3(1 * size + pos.x,     1 + pos.y,          -1 * size + pos.z);
+        vertices[7] = new Vector3(0 + pos.x,            1 * size + pos.y,   -1 * size + pos.z);
 
         //Face avant
         triangles[0] = 0;
