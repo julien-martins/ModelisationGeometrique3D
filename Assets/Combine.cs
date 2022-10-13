@@ -61,7 +61,9 @@ public class Combine : MonoBehaviour
 
         foreach(Cube c1 in s1.GetCubes()){
             foreach(Cube c2 in s2.GetCubes()){
-                if(c1.pos != c2.pos) newCubes.Add(c1);
+                if(c1.pos != c2.pos){
+                    s1.GetCubes().Remove(c1);
+                }
             }
         }
 

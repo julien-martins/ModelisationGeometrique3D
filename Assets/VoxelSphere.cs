@@ -2,11 +2,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public struct Cube{
-    public Vector3 pos;
-    public Mesh mesh;
-}
-
 public class VoxelSphere : MonoBehaviour
 {
 
@@ -41,9 +36,9 @@ public class VoxelSphere : MonoBehaviour
             for(int y = 1; y < height; ++y){
                 for(int x = 1; x < width; ++x){
                     Vector3 cubePos = new Vector3(
-                                Center.x + x * CubeSize - width/2 - CubeSize/2, 
-                                Center.y + y * CubeSize - height/2 - CubeSize/2, 
-                                Center.z + z * CubeSize - depth/2 - CubeSize/2);
+                            Center.x + x * CubeSize - width/2 - CubeSize/2, 
+                            Center.y + y * CubeSize - height/2 - CubeSize/2, 
+                            Center.z + z * CubeSize - depth/2 - CubeSize/2);
 
                     if(PointInCircle(cubePos, Radius, Center)) continue;
                     
@@ -73,7 +68,7 @@ public class VoxelSphere : MonoBehaviour
     public void UpdateMesh(List<Cube> cubes){
         _meshes = cubes;
 
-         foreach (Transform child in transform) {
+        foreach (Transform child in transform) {
             GameObject.Destroy(child.gameObject);
         }
 
