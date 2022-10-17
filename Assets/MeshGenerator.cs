@@ -47,18 +47,22 @@ public class MeshGenerator : MonoBehaviour
     [Header("Custom")]
     public string fileName;
 
+    public Mesh Mesh {get; private set;}
+
     // Use this for initialization
     void Start()
     {
+        /*
         // Creation d'un composant MeshFilter qui peut ensuite �tre visualis�
         gameObject.AddComponent<MeshFilter>();
         gameObject.AddComponent<MeshRenderer>();
 
-        Mesh msh = GetMesh();
+        Mesh = GetMesh();
 
         // Remplissage du Mesh et ajout du mat�riel
-        gameObject.GetComponent<MeshFilter>().mesh = msh;
+        gameObject.GetComponent<MeshFilter>().mesh = Mesh;
         gameObject.GetComponent<MeshRenderer>().material = mat;
+        */
     }
 
     void OnDrawGizmos()
@@ -139,7 +143,7 @@ public class MeshGenerator : MonoBehaviour
             triangles[index + 2] = s3;
         }
 
-        //NormalizeModel(vertices);
+        NormalizeModel(vertices);
 
         ReplaceModel(vertices);
 
@@ -197,9 +201,9 @@ public class MeshGenerator : MonoBehaviour
         for(int i = 0; i < vertices.Length; ++i)
         {
             vertices[i] = new Vector3(
-                vertices[i].x / max.x,
-                vertices[i].y / max.y,
-                vertices[i].z / max.z
+                vertices[i].x / (max.x*2),
+                vertices[i].y / (max.y/2),
+                vertices[i].z / (max.z/2)
                 );
         }
     }

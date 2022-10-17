@@ -52,7 +52,8 @@ public class VoxelGrid : MonoBehaviour
 
         UpdateGrid();
         
-        Union();
+        Intersection();
+        //Union();
         
         DrawGrid(); 
     }
