@@ -11,9 +11,11 @@ public struct Sphere{
     public Sphere(Vector3 center, int radius){
         this.center = center;
         this.radius = radius;
+        this.cubes = new List<Cube>();
     }
     public Vector3 center;
     public int radius;
+    public List<Cube> cubes;
 }
 
 public class VoxelGrid : MonoBehaviour
@@ -42,9 +44,17 @@ public class VoxelGrid : MonoBehaviour
 
         Spheres.Add(new Sphere(new Vector3(0, 0, 0), 5));
         Spheres.Add(new Sphere(new Vector3(-5, 0, 0), 3));
-        Spheres.Add(new Sphere(new Vector3(3, 0, 0), 3));
+        //Spheres.Add(new Sphere(new Vector3(3, 0, 0), 3));
 
-        InitializeGridSize();
+        //InitializeGridSize();
+        minBox = new Vector3Int(-Width, -Height, -Depth);
+        maxBox = new Vector3Int(Width, Height, Depth);
+
+        UpdateGrid();
+        
+        Union();
+        
+        DrawGrid(); 
     }
 
     void OnDrawGizmos(){
@@ -58,8 +68,7 @@ public class VoxelGrid : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        UpdateGrid();
-        DrawGrid();  
+         
     }
 
     void InitializeGridSize(){
@@ -87,20 +96,46 @@ public class VoxelGrid : MonoBehaviour
             for(int y = minBox.y; y < maxBox.y; ++y){
                 for(int x = minBox.x; x < maxBox.x; ++x){
                     Vector3 cubePos = new Vector3(
-                            x * CubeSize - size.x/2 - CubeSize/2, 
-                            y * CubeSize - size.y/2 - CubeSize/2, 
-                            z * CubeSize - size.z/2 - CubeSize/2);
+                            x * CubeSize - CubeSize/2, 
+                            y * CubeSize - CubeSize/2, 
+                            z * CubeSize - CubeSize/2);
 
                     foreach(Sphere sphere in Spheres){
                         if(PointInCircle(cubePos, sphere.radius, sphere.center)){
                             mesh.mesh = MeshGenerator.CreateCube(cubePos, CubeSize);
                             mesh.pos = cubePos;
 
-                            _cubes.Add(mesh);
+                            sphere.cubes.Add(mesh);
+                            //_cubes.Add(mesh);
                         }
                     }
 
                     
+                }
+            }
+        }
+    }
+
+    void Intersection(){
+        for(int j = 0; j < Spheres[0].cubes.Count; ++j){
+            for(int i = 1; i < Spheres.Count; ++i){
+                for(int k = 0; k < Spheres[i].cubes.Count; ++k){
+                    if(Spheres[0].cubes[j].pos == Spheres[i].cubes[k].pos){
+                        _cubes.Add(Spheres[0].cubes[j]);
+                    }
+                }
+            }
+        }
+    }
+
+    void Union(){
+        for(int j = 0; j < Spheres[0].cubes.Count; ++j){
+            for(int i = 1; i < Spheres.Count; ++i){
+                for(int k = 0; k < Spheres[i].cubes.Count; ++k){
+                    if(Spheres[0].cubes[j].pos == Spheres[i].cubes[k].pos) continue;
+
+                    _cubes.Add(Spheres[0].cubes[j]);
+                    _cubes.Add(Spheres[i].cubes[k]);
                 }
             }
         }
