@@ -7,7 +7,7 @@ public class Simplification : MonoBehaviour
 {
     class Cluster{
         public Vector3 min, max;
-        public Dictionary<int, Vector3> vertices;
+        public List<Vector3> vertices;
         public Vector3 vertexMean;
         public int vertexMeanIndex;
         public Vector3 center;
@@ -37,9 +37,13 @@ public class Simplification : MonoBehaviour
         gameObject.AddComponent<MeshFilter>();
         gameObject.AddComponent<MeshRenderer>();
 
+        Debug.Log("GETTING MESH");
         oldMesh = meshGenerator.GetMesh();
+        Debug.Log("SIMPLIFY MESH ...");
+        Debug.Log(oldMesh);
         newMesh = Simplify(oldMesh);
 
+        Debug.Log("Drawing Mesh ...");
         // Remplissage du Mesh et ajout du mat�riel
         gameObject.GetComponent<MeshFilter>().mesh = newMesh;
         gameObject.GetComponent<MeshRenderer>().material = mat;
@@ -47,6 +51,7 @@ public class Simplification : MonoBehaviour
     }
 
     void OnDrawGizmos() {
+        if(clusters_ == null) return;
 
         foreach(Cluster cluster in clusters_){
             //Draw Wire Cube
@@ -76,6 +81,7 @@ public class Simplification : MonoBehaviour
             offset = mesh.bounds.size / Subdivision;
         else
             offset = mesh.bounds.size;
+
         
         for(float i = mesh.bounds.min.x; i <= mesh.bounds.max.x; i += offset.x){
             for(float j = mesh.bounds.min.y; j <= mesh.bounds.max.y; j += offset.y){
@@ -90,46 +96,47 @@ public class Simplification : MonoBehaviour
             }
         }
 
-        foreach(Cluster cluster in clusters_){
-            cluster.vertices = AllVerticesInCube(oldMesh, cluster);
+        //Put each vertex on his cluster
+        List<Vector3> result = new();
+        for(int i = 0; i < mesh.vertices.Length; ++i){
+            
+            foreach(Cluster cluster in clusters_){
+                if(mesh.vertices[i].x >= cluster.min.x && mesh.vertices[i].y >= cluster.min.y && mesh.vertices[i].z >= cluster.min.z &&
+                    mesh.vertices[i].x <= cluster.max.x && mesh.vertices[i].y <= cluster.max.y && mesh.vertices[i].z <= cluster.max.z){
+                    if(cluster.vertices == null) cluster.vertices = new List<Vector3>();
+                    cluster.vertices.Add(mesh.vertices[i]);
+                }
+            }
+            
         }
-
+        
+        
         //Make the vertex mean of all clusters
         foreach(Cluster cluster in clusters_){
             if(cluster.vertices == null) continue;
 
-            cluster.vertexMean = cluster.vertices.Values.First();
-            cluster.vertexMeanIndex = cluster.vertices.Keys.First();
+            //cluster.vertexMean = cluster.vertices[0];
         }
 
         List<Vector3> vertices = new();
         List<int> triangles = new();
         //Initialize all vertices
 
-        foreach(Cluster cluster in clusters_){
-            vertices.Add(cluster.vertexMean);
-        }
-
         //Initialize all triangles
-        for(int i = 0; i < vertices.Count; i += 3){
-            triangles.Add(i);
-            triangles.Add(i + 1);
-            triangles.Add(i + 2);
-        }
+        
 
         mesh.vertices = vertices.ToArray();
-        mesh.triangles = triangles.ToArray();
-
+        
         return mesh;
     }
 
-    Dictionary<int, Vector3> AllVerticesInCube(Mesh mesh, Cluster cluster){
-        Dictionary<int, Vector3> result = new();
+    List<Vector3> AllVerticesInCube(Mesh mesh, Cluster cluster){
+        List<Vector3> result = new();
 
         for(int i = 0; i < mesh.vertices.Length; ++i){
             if(mesh.vertices[i].x >= cluster.min.x && mesh.vertices[i].y >= cluster.min.y && mesh.vertices[i].z >= cluster.min.z &&
                 mesh.vertices[i].x <= cluster.max.x && mesh.vertices[i].y <= cluster.max.y && mesh.vertices[i].z <= cluster.max.z){
-                result.Add(i, mesh.vertices[i]);
+                result.Add(mesh.vertices[i]);
             }
         }
 
@@ -137,7 +144,7 @@ public class Simplification : MonoBehaviour
     }
 
     void Update(){
-        newMesh = Simplify(oldMesh);
+        //newMesh = Simplify(oldMesh);
     }
 
 }

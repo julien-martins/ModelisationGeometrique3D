@@ -67,6 +67,7 @@ public class MeshGenerator : MonoBehaviour
 
     void OnDrawGizmos()
     {
+        /*
         if (!DrawVertices) return;
 
         Mesh mesh = GetMesh();
@@ -76,6 +77,7 @@ public class MeshGenerator : MonoBehaviour
             Gizmos.color = Color.red;
             Gizmos.DrawSphere(coord, SphereRadius);
         }
+        */
     }
 
     public Mesh GetMesh()
