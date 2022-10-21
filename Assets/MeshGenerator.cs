@@ -167,7 +167,7 @@ public class MeshGenerator : MonoBehaviour
         for(int i = 1; i < vertices.Length; ++i)
         {
             Vector3 coord = new(Math.Abs(vertices[i].x), Math.Abs(vertices[i].y), Math.Abs(vertices[i].z));
-            if (coord.x > max.x && coord.y > max.y && coord.z > max.z)
+            if (coord.x > max.x || coord.y > max.y || coord.z > max.z)
                 max = coord;
         }
 
@@ -203,9 +203,9 @@ public class MeshGenerator : MonoBehaviour
         for(int i = 0; i < vertices.Length; ++i)
         {
             vertices[i] = new Vector3(
-                vertices[i].x / (max.x*2),
-                vertices[i].y / (max.y/2),
-                vertices[i].z / (max.z/2)
+                vertices[i].x / max.x,
+                vertices[i].y / max.y,
+                vertices[i].z / max.z
                 );
         }
     }

@@ -347,7 +347,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   meshGenerator: {fileID: 1035681077}
-  Subdivision: 10
+  Subdivision: 13
   cubeSize: 4
   mat: {fileID: 2100000, guid: 74d1d46929067e74fabed292010780ce, type: 2}
   Debugging: 1
@@ -376,4 +376,4 @@ MonoBehaviour:
   SphereRayon: 0
   SphereMeridien: 0
   SphereParraleles: 0
-  fileName: buddha
+  fileName: bunny

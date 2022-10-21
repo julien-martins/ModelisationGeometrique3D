@@ -64,9 +64,17 @@ public class Simplification : MonoBehaviour
         Gizmos.color = Color.gray;
         Gizmos.DrawSphere(transform.position + oldMesh.bounds.max, 0.2f);
 
-        if(clusters_[1].vertices != null){
+        Debug.Log("Nombre de cluster: " + clusters_.Count);
+
+        if(clusters_[150] != null){
+            Gizmos.color = Color.green;
+            Gizmos.DrawSphere(clusters_[150].min, 0.05f);
+            Gizmos.DrawSphere(clusters_[150].max, 0.05f);
+        }
+
+        if(clusters_[150].vertices != null){
             
-            foreach(Vector3 vertex in clusters_[1].vertices){
+            foreach(Vector3 vertex in clusters_[150].vertices){
                 Gizmos.color = Color.cyan;
                 Gizmos.DrawSphere(vertex, 0.02f);
             }
@@ -80,11 +88,14 @@ public class Simplification : MonoBehaviour
             else Gizmos.color = Color.white;
             Gizmos.DrawWireCube(cluster.center, cluster.size);
 
+            /*
             Gizmos.color = Color.green;
             Gizmos.DrawSphere(cluster.min, 0.1f);
             Gizmos.DrawSphere(cluster.max, 0.1f);
+            */
 
             //Draw Vertex in each cluster
+            
             if(cluster.vertices != null){
                 
                 
@@ -94,10 +105,11 @@ public class Simplification : MonoBehaviour
                 }
                                 
             }
+            
 
             //Draw the vertex mean
             Gizmos.color = Color.magenta;
-            Gizmos.DrawSphere(transform.position + cluster.vertexMean, 0.2f);
+            Gizmos.DrawSphere(transform.position + cluster.vertexMean, 0.09f);
             
             debug++;
         }
@@ -133,7 +145,8 @@ public class Simplification : MonoBehaviour
         //Put each vertex on his cluster
         Debug.Log("Nombre de vertex: " + mesh.vertices.Length);
         List<Vector3> result = new();
-        for(int i = 0; i < mesh.vertices.Length; ++i){
+        //for(int i = 0; i < mesh.vertices.Length; ++i){
+        for(int i = 0; i < 400; ++i){
             
             //Find the cluster indice
             //(xmin  - x) / pas = i
@@ -143,6 +156,7 @@ public class Simplification : MonoBehaviour
             int clusterIndiceZ = (int)(Mathf.Floor(Mathf.Abs(clusters_[0].min.z - (transform.position.z + mesh.vertices[i].z) )) / offset.z);
 
             int indice = clusterIndiceX + Subdivision * (clusterIndiceY + Subdivision * clusterIndiceZ);
+            Debug.Log(indice);
 
             if(clusters_[indice].vertices == null) clusters_[indice].vertices = new List<Vector3>();
             clusters_[indice].vertices.Add(transform.position + mesh.vertices[i]);
@@ -153,35 +167,74 @@ public class Simplification : MonoBehaviour
         }
         Debug.Log("Fin asssignation des vertex");
         
+        /*
         List<Vector3> newVertices = new();
         List<int> newTriangles = new();
+
 
         //Make the vertex mean of all clusters
         foreach(Cluster cluster in clusters_){
             if(cluster.vertices == null) continue;
 
             for(int i = 0; i < cluster.vertices.Count; ++i){
-                cluster.vertexMean += cluster.vertices[i];
+                
+                //cluster.vertexMean += cluster.vertices[i];
                 //Replace this vertex on the triangles
-                ReplaceIndex.Add(cluster.indices[i], cluster.vertices.Count);
+                //ReplaceIndex.Add(cluster.indices[i], newVertices.Count);
+                
+
+                cluster.vertexMean = cluster.center;
+                ReplaceIndex.Add(cluster.indices[i], newVertices.Count);
+
             }
 
-            cluster.vertexMean /= cluster.vertices.Count;
+            //cluster.vertexMean /= cluster.vertices.Count;
 
-            //newVertices.Add(transform.position + cluster.vertexMean);
+            newVertices.Add(transform.position + cluster.vertexMean);
         }
+
+        */
+
+        /*
 
         Debug.Log("Vertex mean: " + clusters_.Count);
 
         foreach(KeyValuePair<int, int> pair in ReplaceIndex){
             Debug.Log(pair.Key + " | " + pair.Value);
         }
+
+        */
         
-        /*
+        
         //Replace all triangles
+        /*
+        Debug.Log("Replacing triangle ...");
         for(int i = 0; i < mesh.triangles.Length; ++i){
             newTriangles.Add(ReplaceIndex[mesh.triangles[i]]);
         }
+        */
+
+        /*
+        for(int i = 0; i < mesh.triangles.Length; i += 3) {
+            int newIndex1 = ReplaceIndex[mesh.triangles[i]];
+            int newIndex2 = ReplaceIndex[mesh.triangles[i + 1]];
+            int newIndex3 = ReplaceIndex[mesh.triangles[i + 2]];
+
+            if(newIndex1 != newIndex2 && newIndex2 != newIndex3) {
+                newTriangles.Add(newIndex1);
+                newTriangles.Add(newIndex2);
+                newTriangles.Add(newIndex3);
+            }
+
+            Debug.Log(newIndex1);
+            Debug.Log(newIndex2);
+            Debug.Log(newIndex3);
+        }
+
+
+
+        Debug.Log("Nb of new vertices: ");
+        Debug.Log(newVertices.Count);
 
         mesh.vertices = newVertices.ToArray();
         mesh.triangles = newTriangles.ToArray();
