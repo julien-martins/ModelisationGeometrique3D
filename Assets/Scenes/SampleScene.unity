@@ -350,7 +350,7 @@ MonoBehaviour:
   Subdivision: 13
   cubeSize: 4
   mat: {fileID: 2100000, guid: 74d1d46929067e74fabed292010780ce, type: 2}
-  Debugging: 1
+  Debugging: 0
 --- !u!114 &1035681077
 MonoBehaviour:
   m_ObjectHideFlags: 0

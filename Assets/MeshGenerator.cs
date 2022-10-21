@@ -99,6 +99,7 @@ public class MeshGenerator : MonoBehaviour
                 break;
             case EFormType.Custom:
                 msh = LoadMeshOFF(fileName);
+                Debug.Log(msh);
                 break;
         }
 
@@ -107,8 +108,13 @@ public class MeshGenerator : MonoBehaviour
 
     Mesh LoadMeshOFF(string fileName)
     {
+        Debug.Log("Enter LOAD MESH");
+
         String[] lines = readFiles(fileName + ".off");
-        if (lines[0] != "OFF") return null;
+        Debug.Log(lines[0]);
+        if (lines[0] != "OFF" ) return null;
+
+        Debug.Log("LOAD MESH: 2");
 
         Mesh mesh = new();
         int sizeVertices = int.Parse(lines[1].Split(" ")[0]);
@@ -122,10 +128,10 @@ public class MeshGenerator : MonoBehaviour
         //Vertices
         for(int i = headerOffset; i < sizeVertices + headerOffset; ++i)
         {
-            String[] coordStr = lines[i].Replace(".", ",").Split(" ");
-            double x = double.Parse(coordStr[0]);
-            double y = double.Parse(coordStr[1]);
-            double z = double.Parse(coordStr[2]);
+            String[] coordStr = lines[i].Replace(",", ".").Split(" ");
+            float x = float.Parse(coordStr[0]);
+            float y = float.Parse(coordStr[1]);
+            float z = float.Parse(coordStr[2]);
 
             vertices[i- headerOffset] = new Vector3((float)x, (float)y, (float)z);
         }
@@ -149,6 +155,9 @@ public class MeshGenerator : MonoBehaviour
 
         ReplaceModel(vertices);
 
+        Debug.Log("LOAD MESH: ");
+        Debug.Log(mesh);
+
         mesh.vertices = vertices;
         mesh.triangles = triangles;
 
@@ -166,12 +175,33 @@ public class MeshGenerator : MonoBehaviour
         Vector3 max = vertices[0];
         for(int i = 1; i < vertices.Length; ++i)
         {
-            Vector3 coord = new(Math.Abs(vertices[i].x), Math.Abs(vertices[i].y), Math.Abs(vertices[i].z));
-            if (coord.x > max.x || coord.y > max.y || coord.z > max.z)
-                max = coord;
+            Vector3 coord = new(vertices[i].x, vertices[i].y, vertices[i].z);
+            if(coord.x > max.x)
+                max.x = coord.x;
+            if(coord.y > max.y)
+                max.y = coord.y;
+            if(coord.z > max.z)
+                max.z = coord.z;
         }
 
         return max;
+    }
+
+    Vector3 MinCoord(Vector3[] vertices)
+    {
+        Vector3 min = vertices[0];
+        for(int i = 1; i < vertices.Length; ++i)
+        {
+            Vector3 coord = new(vertices[i].x, vertices[i].y, vertices[i].z);
+            if(coord.x < min.x)
+                min.x = coord.x;
+            if(coord.y < min.y)
+                min.y = coord.y;
+            if(coord.z < min.z)
+                min.z = coord.z;
+        }
+
+        return min;
     }
 
     Vector3 VerticesCenter(Vector3[] vertices)
@@ -199,25 +229,33 @@ public class MeshGenerator : MonoBehaviour
     void NormalizeModel(Vector3[] vertices)
     {
         Vector3 max = MaxCoord(vertices);
+        Vector3 min = MinCoord(vertices);
+
+        Debug.Log(max);
+        Debug.Log(min);
 
         for(int i = 0; i < vertices.Length; ++i)
         {
             vertices[i] = new Vector3(
-                vertices[i].x / max.x,
-                vertices[i].y / max.y,
-                vertices[i].z / max.z
-                );
+                2 * (vertices[i].x - min.x) / (max.x - min.x) - 1.0f,
+                2 * (vertices[i].y - min.y) / (max.y - min.y) - 1.0f,
+                2 * (vertices[i].z - min.z) / (max.z - min.z) - 1.0f
+            );
+            Debug.Log(vertices[i]);
         }
     }
 
     public String[] readFiles(String fileName)
     {
+        List<String> result = new();
+
         var sr = new StreamReader(Application.dataPath + "/" + fileName);
-        Debug.Log(Application.dataPath + "/" + fileName);
-        var fileContents = sr.ReadToEnd();
+        while(!sr.EndOfStream){
+            result.Add(sr.ReadLine());
+        }
         sr.Close();
 
-        return fileContents.Split("\n"[0]);
+        return result.ToArray();
     }
 
     Mesh CreateSphere()

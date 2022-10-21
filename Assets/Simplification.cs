@@ -37,6 +37,8 @@ public class Simplification : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        meshGenerator = GetComponent<MeshGenerator>();
+
         clusters_ = new();
         ReplaceIndex = new();
         
@@ -45,8 +47,10 @@ public class Simplification : MonoBehaviour
 
         Debug.Log("GETTING MESH");
         oldMesh = meshGenerator.GetMesh();
+        Debug.Log(oldMesh);
         Debug.Log("SIMPLIFY MESH ...");
-        newMesh = Simplify(oldMesh);
+        newMesh = oldMesh;
+        //newMesh = Simplify(oldMesh);
 
         Debug.Log("Drawing Mesh ...");
         // Remplissage du Mesh et ajout du mat�riel
