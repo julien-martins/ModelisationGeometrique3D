@@ -152,8 +152,7 @@ public class MeshGenerator : MonoBehaviour
         }
 
         NormalizeModel(vertices);
-
-        ReplaceModel(vertices);
+        //ReplaceModel(vertices);
 
         Debug.Log("LOAD MESH: ");
         Debug.Log(mesh);
@@ -241,7 +240,6 @@ public class MeshGenerator : MonoBehaviour
                 2 * (vertices[i].y - min.y) / (max.y - min.y) - 1.0f,
                 2 * (vertices[i].z - min.z) / (max.z - min.z) - 1.0f
             );
-            Debug.Log(vertices[i]);
         }
     }
 
