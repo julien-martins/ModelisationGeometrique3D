@@ -32,7 +32,6 @@ public class Bezier : MonoBehaviour
             }
             result.Add(newPoint);
         }
-        Debug.Log(result.Count);
 
         return result;
     }
@@ -55,7 +54,7 @@ public class Bezier : MonoBehaviour
         if(Parent != null){
             ControlPoints[0] = (Parent.ControlPoints[ControlPoints.Count - 2] + ControlPoints[1]) / 2;
 
-            points[0].position = ControlPoints[0];
+            points[0].gameObject.SetActive(false);
         }
 
         Gizmos.color = Color.blue;
@@ -68,9 +67,6 @@ public class Bezier : MonoBehaviour
         CurvePoints = BezierCurve(ControlPoints);
 
         for(int i = 0; i < CurvePoints.Count - 1; ++i){
-            Debug.Log(CurvePoints[i]);
-            Debug.Log(CurvePoints[i+1]);
-
             Gizmos.DrawLine(CurvePoints[i], CurvePoints[i + 1]);
         }
 
