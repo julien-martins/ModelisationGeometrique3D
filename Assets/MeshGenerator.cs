@@ -106,6 +106,19 @@ public class MeshGenerator : MonoBehaviour
         return msh;
     }
 
+     public String[] readFiles(String fileName)
+    {
+        List<String> result = new();
+
+        var sr = new StreamReader(Application.dataPath + "/" + fileName);
+        while(!sr.EndOfStream){
+            result.Add(sr.ReadLine());
+        }
+        sr.Close();
+
+        return result.ToArray();
+    }
+
     Mesh LoadMeshOFF(string fileName)
     {
         Debug.Log("Enter LOAD MESH");
@@ -163,10 +176,25 @@ public class MeshGenerator : MonoBehaviour
         return mesh;
     }
 
-    void SaveMeshOFF()
+    public void SaveMeshOFF(String fileName, Mesh mesh)
     {
+        var sw = new StreamWriter(Application.dataPath + "/" + fileName);
         
+        //Header
+        sw.WriteLine("OFF");
+        sw.WriteLine("{0} {1} {2}", mesh.vertices.Length, mesh.triangles.Length/3, 0);
 
+        //Write Vertices
+        foreach(Vector3 vertex in mesh.vertices){
+            sw.WriteLine("{0} {1} {2}", vertex.x, vertex.y, vertex.z);
+        }
+
+        //Write Faces
+        for(int i = 0; i < mesh.triangles.Length; i += 3) {
+            sw.WriteLine("{0} {1} {2} {3}", 3, mesh.triangles[i], mesh.triangles[i + 1], mesh.triangles[i + 2]);
+        }
+
+        sw.Close();
     }
 
     Vector3 MaxCoord(Vector3[] vertices)
@@ -241,19 +269,6 @@ public class MeshGenerator : MonoBehaviour
                 2 * (vertices[i].z - min.z) / (max.z - min.z) - 1.0f
             );
         }
-    }
-
-    public String[] readFiles(String fileName)
-    {
-        List<String> result = new();
-
-        var sr = new StreamReader(Application.dataPath + "/" + fileName);
-        while(!sr.EndOfStream){
-            result.Add(sr.ReadLine());
-        }
-        sr.Close();
-
-        return result.ToArray();
     }
 
     Mesh CreateSphere()

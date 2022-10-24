@@ -16,7 +16,7 @@ public class Simplification : MonoBehaviour
         public Vector3 size;
     }
 
-    public MeshGenerator meshGenerator;
+    MeshGenerator meshGenerator;
 
     [Range(2, 20)]
     public int Subdivision = 3;
@@ -61,6 +61,8 @@ public class Simplification : MonoBehaviour
         gameObject.GetComponent<MeshFilter>().mesh = newMesh;
         gameObject.GetComponent<MeshRenderer>().material = mat;
         //gameObject.GetComponent<MeshRenderer>().enabled = false;
+    
+        meshGenerator.SaveMeshOFF("bunny_simple.off", newMesh);
     }
 
     void OnDrawGizmos() {
