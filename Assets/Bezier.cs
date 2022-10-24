@@ -6,8 +6,11 @@ public class Bezier : MonoBehaviour
 {
     public List<Transform> points;
 
-    Bezier Parent;
-    Bezier Child;
+    List<Vector3> ControlPoints {get; set;}
+    List<Vector3> CurvePoints {get; set;}
+
+    [SerializeField] Bezier Child;
+    [SerializeField] Bezier Parent;
 
     float Bernstein(int i, int n, float u)
     {
@@ -19,32 +22,6 @@ public class Bezier : MonoBehaviour
         return n > 1 ? n * Fact(n - 1) : 1;
     }
 
-    // Start is called before the first frame update
-    void OnDrawGizmos()
-    {
-        List<Vector3> points_pos = new();
-        foreach(Transform p in points){
-            points_pos.Add(p.position);
-        }
-        
-        Gizmos.color = Color.blue;
-        for(int i = 0; i < points_pos.Count - 1; ++i){
-            Gizmos.DrawLine(points_pos[i], points_pos[i+1]);
-        }
-
-        //Calculate new points
-        Gizmos.color = Color.red;
-        List<Vector3> newPoints = BezierCurve(points_pos);
-
-        for(int i = 0; i < newPoints.Count - 1; ++i){
-            Debug.Log(newPoints[i]);
-            Debug.Log(newPoints[i+1]);
-
-            Gizmos.DrawLine(newPoints[i], newPoints[i + 1]);
-        }
-
-    }
-    
     List<Vector3> BezierCurve(List<Vector3> points){
         List<Vector3> result = new();
 
@@ -59,4 +36,44 @@ public class Bezier : MonoBehaviour
 
         return result;
     }
+
+    void OnDrawGizmos()
+    {
+        ControlPoints = new();
+        CurvePoints = new();
+
+        foreach(Transform p in points){
+            ControlPoints.Add(p.position);
+        }
+        
+        if(Child != null){
+            ControlPoints[ControlPoints.Count-1] = (ControlPoints[ControlPoints.Count - 2] + Child.ControlPoints[1]) / 2;
+            
+            points[ControlPoints.Count-1].gameObject.SetActive(false);
+        }
+
+        if(Parent != null){
+            ControlPoints[0] = (Parent.ControlPoints[ControlPoints.Count - 2] + ControlPoints[1]) / 2;
+
+            points[0].position = ControlPoints[0];
+        }
+
+        Gizmos.color = Color.blue;
+        for(int i = 0; i < ControlPoints.Count - 1; ++i){
+            Gizmos.DrawLine(ControlPoints[i], ControlPoints[i+1]);
+        }
+
+        //Calculate new points
+        Gizmos.color = Color.red;
+        CurvePoints = BezierCurve(ControlPoints);
+
+        for(int i = 0; i < CurvePoints.Count - 1; ++i){
+            Debug.Log(CurvePoints[i]);
+            Debug.Log(CurvePoints[i+1]);
+
+            Gizmos.DrawLine(CurvePoints[i], CurvePoints[i + 1]);
+        }
+
+    }
+    
 }
