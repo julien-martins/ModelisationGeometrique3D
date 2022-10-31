@@ -7,54 +7,43 @@ public struct Cube{
     public Mesh mesh;
 }
 
-public struct Sphere{
-    public Sphere(Vector3 center, int radius){
-        this.center = center;
-        this.radius = radius;
-        this.cubes = new List<Cube>();
-    }
-    public Vector3 center;
-    public int radius;
-    public List<Cube> cubes;
-}
-
 public class VoxelGrid : MonoBehaviour
 {
-    public int Width = 20;
-    public int Height = 20;
-    public int Depth = 20;
+    public int Width = 10;
+    public int Height = 10;
+    public int Depth = 10;
 
     public int CubeSize = 1;
 
-    public Material MatCube;
+    Material MatCube;
 
-    public MeshGenerator MeshGenerator;
+    MeshGenerator MeshGenerator;
 
-    public List<Sphere> Spheres;
     private List<Cube> _cubes;
 
     private Vector3Int minBox;
     private Vector3Int maxBox;
 
+    public List<Sphere> targetObjects;
+    public Sphere Eraser;
+    
     // Start is called before the first frame update
     void Start()
     {
+        MeshGenerator = GetComponent<MeshGenerator>();
+        MatCube = MeshGenerator.mat;
+        
         _cubes = new List<Cube>();
-        Spheres = new List<Sphere>();
 
-        Spheres.Add(new Sphere(new Vector3(0, 0, 0), 5));
-        Spheres.Add(new Sphere(new Vector3(-5, 0, 0), 3));
-        //Spheres.Add(new Sphere(new Vector3(3, 0, 0), 3));
-
-        //InitializeGridSize();
         minBox = new Vector3Int(-Width, -Height, -Depth);
         maxBox = new Vector3Int(Width, Height, Depth);
 
-        UpdateGrid();
+        //Initialize Grid
         
-        Intersection();
+        //Intersection();
         //Union();
         
+        UpdateGrid();
         DrawGrid(); 
     }
 
@@ -69,24 +58,13 @@ public class VoxelGrid : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-         
+        //UpdateGrid();
+        //DrawGrid();
+
+        UpdateEraser();
+        DrawGrid();
     }
 
-    void InitializeGridSize(){
-        Vector3 minSphereCenter = Spheres[0].center;
-        Vector3 maxSphereCenter = Spheres[0].center;
-
-        int radiusMin = Spheres[0].radius;
-        int radiusMax = Spheres[0].radius;
-
-        for(int i = 1; i < Spheres.Count; ++i){
-            minSphereCenter = Vector3.Min(Spheres[i].center, minSphereCenter);
-            maxSphereCenter = Vector3.Max(Spheres[i].center, maxSphereCenter);
-        }
-
-        minBox = Vector3Int.FloorToInt(minSphereCenter - new Vector3(radiusMin + 1, radiusMin + 1, radiusMin + 1));
-        maxBox = Vector3Int.FloorToInt(maxSphereCenter + new Vector3(radiusMax + 1, radiusMax + 1, radiusMax + 1));
-    }
     void UpdateGrid(){
         _cubes.Clear();
         Cube mesh = new Cube();
@@ -101,22 +79,58 @@ public class VoxelGrid : MonoBehaviour
                             y * CubeSize - CubeSize/2, 
                             z * CubeSize - CubeSize/2);
 
-                    foreach(Sphere sphere in Spheres){
-                        if(PointInCircle(cubePos, sphere.radius, sphere.center)){
+                    foreach(Sphere targetObject in targetObjects){
+                        if(PointInCircle(cubePos, targetObject.radius, targetObject.transform.position) &&
+                           !PointInCircle(cubePos, Eraser.radius, Eraser.transform.position)){
                             mesh.mesh = MeshGenerator.CreateCube(cubePos, CubeSize);
                             mesh.pos = cubePos;
 
-                            sphere.cubes.Add(mesh);
-                            //_cubes.Add(mesh);
+                            _cubes.Add(mesh);
                         }
                     }
 
+                    
                     
                 }
             }
         }
     }
 
+    void UpdateEraser()
+    {
+        for (int z = minBox.z; z < maxBox.z; ++z)
+        {
+            for (int y = minBox.y; y < maxBox.y; ++y)
+            {
+                for (int x = minBox.x; x < maxBox.x; ++x)
+                {
+                    Vector3 cubePos = new Vector3(
+                        x * CubeSize - CubeSize/2,
+                        y * CubeSize - CubeSize/2,
+                        z * CubeSize - CubeSize/2
+                    );
+
+                    List<Cube> toRemove = new();
+                    if (PointInCircle(cubePos, Eraser.radius, Eraser.transform.position))
+                    {
+                        foreach (Cube cube in _cubes)
+                        {
+                            if (cube.pos == cubePos)
+                            {
+                                toRemove.Add(cube);
+                            }
+                        }
+                    }
+
+                    foreach (var cube in toRemove)
+                    {
+                        _cubes.Remove(cube);
+                    }
+                }
+            }
+        }
+    }
+    /*
     void Intersection(){
         for(int j = 0; j < Spheres[0].cubes.Count; ++j){
             for(int i = 1; i < Spheres.Count; ++i){
@@ -141,7 +155,16 @@ public class VoxelGrid : MonoBehaviour
             }
         }
     }
+    */
+    bool AlreadyCube(Vector3 cubePos)
+    {
+        foreach (Cube cube in _cubes)
+        {
+            if (cubePos == cube.pos) return true;
+        }
 
+        return false;
+    } 
     void DrawGrid(){
         //Clear cubes
         foreach (Transform child in transform) {

@@ -5,7 +5,7 @@ using UnityEngine;
 public class VoxelSphere : MonoBehaviour
 {
 
-    public MeshGenerator meshGenerator;
+    MeshGenerator meshGenerator;
 
     CombineInstance[] combine;
 
@@ -15,13 +15,16 @@ public class VoxelSphere : MonoBehaviour
 
     public int CubeSize = 1;
 
-    public Material mat;
+    Material mat;
 
     private List<Cube> _meshes = new List<Cube>();
 
     // Start is called before the first frame update
     void Start()
     {
+        Center = transform.position;
+        meshGenerator = GetComponent<MeshGenerator>();
+        mat = meshGenerator.mat;
         DrawVoxelSphere();
     }
 
@@ -65,6 +68,10 @@ public class VoxelSphere : MonoBehaviour
 
     public List<Cube> GetCubes() => _meshes;
 
+    public void RemoveCube(Cube cube)
+    {
+    }
+    
     public void UpdateMesh(List<Cube> cubes){
         _meshes = cubes;
 
