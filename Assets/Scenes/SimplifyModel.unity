@@ -346,8 +346,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fbc1f21379a2ea44d88b7698e1b31eb3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Subdivision: 8
-  cubeSize: 3
+  Subdivision: 4
+  cubeSize: 1
   mat: {fileID: 2100000, guid: 74d1d46929067e74fabed292010780ce, type: 2}
   Debugging: 0
   indiceTest: 0

@@ -141,7 +141,7 @@ public class MeshGenerator : MonoBehaviour
         //Vertices
         for(int i = headerOffset; i < sizeVertices + headerOffset; ++i)
         {
-            String[] coordStr = lines[i].Replace(",", ".").Split(" ");
+            String[] coordStr = lines[i].Replace(".", ",").Split(" ");
             float x = float.Parse(coordStr[0]);
             float y = float.Parse(coordStr[1]);
             float z = float.Parse(coordStr[2]);

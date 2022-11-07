@@ -26,6 +26,7 @@ public class VoxelGrid : MonoBehaviour
 
     public List<Sphere> targetObjects;
     public Sphere Eraser;
+    public Sphere Crayon;
     
     // Start is called before the first frame update
     void Start()
@@ -60,8 +61,13 @@ public class VoxelGrid : MonoBehaviour
     {
         //UpdateGrid();
         //DrawGrid();
-
-        UpdateEraser();
+       
+        if(Eraser != null)
+            UpdateEraser();
+      
+        if(Crayon != null)
+            UpdateCrayon();
+        
         DrawGrid();
     }
 
@@ -113,8 +119,7 @@ public class VoxelGrid : MonoBehaviour
                     List<Cube> toRemove = new();
                     if (PointInCircle(cubePos, Eraser.radius, Eraser.transform.position))
                     {
-                        foreach (Cube cube in _cubes)
-                        {
+                        foreach(Cube cube in _cubes){
                             if (cube.pos == cubePos)
                             {
                                 toRemove.Add(cube);
@@ -126,6 +131,33 @@ public class VoxelGrid : MonoBehaviour
                     {
                         _cubes.Remove(cube);
                     }
+                }
+            }
+        }
+    }
+
+    void UpdateCrayon()
+    {
+        for (int z = minBox.z; z < maxBox.z; ++z)
+        {
+            for (int y = minBox.y; y < maxBox.y; ++y)
+            {
+                for (int x = minBox.x; x < maxBox.x; ++x)
+                {
+                    Vector3 cubePos = new Vector3(
+                        x * CubeSize - CubeSize/2,
+                        y * CubeSize - CubeSize/2,
+                        z * CubeSize - CubeSize/2
+                    );
+
+                    if (PointInCircle(cubePos, Crayon.radius, Crayon.transform.position))
+                    {
+                        Cube cube = new Cube();
+                        cube.mesh = MeshGenerator.CreateCube(cubePos, CubeSize);
+                        cube.pos = cubePos;
+                        _cubes.Add(cube);
+                    }
+
                 }
             }
         }
